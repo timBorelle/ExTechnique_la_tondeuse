@@ -1,3 +1,21 @@
+# Prérequis
+- Pip
+- Python
+
+
+# Lancement
+
+``` virtualenv venv ```
+
+``` source venv/bin/activate ```
+
+``` pip install -r requirements.txt ```
+
+``` python tondeuse.py ```
+
+
+
+
 # Exercice de développement - La tondeuse
 
 La société MowItNow a décidé de développer une tondeuse à gazon automatique, destinée aux surfaces rectangulaires.
