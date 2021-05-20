@@ -1,5 +1,6 @@
 # Prérequis
 - Pip
+- virtualenv
 - Python
 
 
