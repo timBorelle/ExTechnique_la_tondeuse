@@ -6,9 +6,10 @@ import logging
 def lireFichier(cheminSource):
     logging.info("lireFichier")
     fichierSource = open(cheminSource, 'r')
-    global nbTondeuses, tondeuses, pelouse
+    global nbTondeuses, tondeuses, pelouse, nbCellsY
     nbTondeuses = 0
     tondeuses = []
+    nbCellsY = int
 
     while True:
         # Nouvelle ligne depuis le fichier
@@ -20,8 +21,8 @@ def lireFichier(cheminSource):
         
         if re.search("\d.*\d$", ligne):
             # Taille de la pelouse
-            nbCellsX = int(re.findall("\d+", ligne)[0])
-            nbCellsY = int(re.findall("\d+", ligne)[1])
+            nbCellsX = int(re.findall("\d+", ligne)[0]) + 1
+            nbCellsY = int(re.findall("\d+", ligne)[1]) + 1
             pelouse = np.empty((nbCellsY,nbCellsX), list)
             logging.info("Taille de la pelouse: (%d, %d)", nbCellsX, nbCellsY)
         
@@ -42,8 +43,9 @@ def lireFichier(cheminSource):
             infoTondeuse.append(orientationActuelle)
             logging.info("nouvelle tondeuse: %s", str(infoTondeuse))
             
-            pelouse[y][x] = refTondeuse
-            logging.info("tondeuse #%s", pelouse[y][x])
+            positionY = nbCellsY - 1 - y
+            pelouse[positionY][x] = refTondeuse
+            logging.info("tondeuse #%s", pelouse[positionY][x])
             tondeuses.append(infoTondeuse)
             logging.info("tondeuses : %s", str(tondeuses))
 
@@ -51,11 +53,11 @@ def lireFichier(cheminSource):
         if re.search("^(A|D|G)+$", ligne):
             mouvements = re.findall("[A-G]{1}", ligne)        # [A-G]+
             logging.info("Mouvements: %s", str(mouvements))
-            logging.info("tondeuse iNfO + mouv : ")
+            #logging.info("tondeuse iNfO + mouv : ")
             indiceTondeuse = nbTondeuses-1
             tondeuses[indiceTondeuse].append(mouvements)
             #tondeuses.insert(nbTondeuses-1, mouvements)
-            logging.info(tondeuses)
+            #logging.info(tondeuses)
     fichierSource.close()
 
 
@@ -97,18 +99,18 @@ def obtenirNouveauxCoordonnes(orientation, y, x):
     nouveauCoordY = y
     nouveauCoordX = x
     if orientation == 'S':
-        nouveauCoordY = y + 1
+        nouveauCoordY = y - 1       # y+1 
     elif orientation == 'E':
         nouveauCoordX = x + 1
     elif orientation == 'N':
-        nouveauCoordY = y - 1
+        nouveauCoordY = y + 1       # y-1
     elif orientation == 'W':
         nouveauCoordX = x - 1
     return nouveauCoordY, nouveauCoordX
 
 def estAlInterieur(y=int, x=int):
-    hauteurPelouse = pelouse.shape[0]
-    largeurPelouse = pelouse.shape[1]
+    hauteurPelouse = pelouse.shape[0] + 1
+    largeurPelouse = pelouse.shape[1] + 1
     if y < hauteurPelouse and y >= 0 and x < largeurPelouse and x >= 0:
         return True
     else:
@@ -116,9 +118,10 @@ def estAlInterieur(y=int, x=int):
         return False
 
 def emplacementDispo(y, x):
-    if pelouse[y][x]:
-        logging.info("pelouse[y][x] : %s", pelouse[y][x])
-        logging.warning("Emplacement non disponible.")
+    positionY = nbCellsY - 1 - y
+    if pelouse[positionY][x]:
+        #logging.info("pelouse[y][x] : %s", pelouse[y][x])
+        #logging.warning("Emplacement non disponible.")
         return False
     return True        
 
@@ -130,33 +133,39 @@ def simulation():
         refTondeuse = infoTondeuse[0]
         mouvements = infoTondeuse[4]
         prochainMouvement = mouvements[0]
+        x = int
+        y = int
+        orientationActuelle = ''
 
         while prochainMouvement:
             x = infoTondeuse[1]
-            y = infoTondeuse[2]
+            y = infoTondeuse[2]     #nbCellsY - 1 - infoTondeuse[2]      
             orientationActuelle = infoTondeuse[3]
         
-            print("prochain mouv ###")
-            print(prochainMouvement)
-            logging.info("orientationActuelle : {%s}", orientationActuelle)
+            #print("prochain mouv ###")
+            #print(prochainMouvement)
+            #logging.info("orientationActuelle : {%s}", orientationActuelle)
             nouvelleOrientation = obtenirNouvelleOrientation(orientationActuelle,prochainMouvement)
-            logging.info("nouvelleOrientation : {%s}", str(nouvelleOrientation))
-            if nouvelleOrientation != orientationActuelle:
+            #logging.info("nouvelleOrientation : {%s}", str(nouvelleOrientation))
+            '''if nouvelleOrientation != orientationActuelle:
                 print(end="")
                 #mouvements = mouvements[1:]
                 # Mise à jour des informations sur la tondeuse
                 #tondeuses[i] = [refTondeuse, x, y, nouvelleOrientation, mouvements]
-            else:
+            else:'''
+            if nouvelleOrientation == orientationActuelle:
                 nouveauCoordY, nouveauCoordX = obtenirNouveauxCoordonnes(orientationActuelle, y, x)
                 # Vérifie si le mouvement est en dehors de la pelouse
                 if estAlInterieur(nouveauCoordY, nouveauCoordX):        
                     # Vérfie si l'emplacement est disponible
                     if emplacementDispo(nouveauCoordY, nouveauCoordX):
                         # Libération de l'emplacement précédent
-                        pelouse[y][x] = None
+                        positionY = nbCellsY - 1 - y
+                        pelouse[positionY][x] = None
                         # Intégration d'un nouvel emplacement
-                        pelouse[nouveauCoordY][nouveauCoordX] = refTondeuse
-                y = nouveauCoordY
+                        positionY = nbCellsY - 1 - nouveauCoordY
+                        pelouse[positionY][nouveauCoordX] = refTondeuse
+                y = nouveauCoordY    #positionY
                 x = nouveauCoordX
             # Suppression du mouvement effectué
             mouvements = mouvements[1:]
@@ -167,10 +176,11 @@ def simulation():
                 prochainMouvement = mouvements[0]
             else:
                 prochainMouvement = None
-            logging.info("infoTondeuse : ->v")
+            #logging.info("infoTondeuse : ")
             logging.info(infoTondeuse)
         tondeuses[i] = infoTondeuse
         logging.info("----- %s a effectué tous ses mouvements. -----", refTondeuse)
+        print(x, y, orientationActuelle)
         
 
     
