@@ -14,7 +14,9 @@
 
 ``` python tondeuse.py ```
 
+## Lancement des tests
 
+``` venv/bin/pytest ```
 
 
 # Exercice de développement - La tondeuse
