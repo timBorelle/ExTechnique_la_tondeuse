@@ -16,3 +16,4 @@ def test_file_exist():
 # Vérifie si le fichier est vide
 def test_no_empty_file():
     assert isEmptyFile(fichierSrc) == False
+
